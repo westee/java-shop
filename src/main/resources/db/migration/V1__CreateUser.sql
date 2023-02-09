@@ -1,7 +1,13 @@
-create table User {
-    id bigint primary key auto_increment,
-    username        varchar(100),
-    tel         varchar(100) unique,
-    created_at  timestamp,
-    updated_at  timestamp
-}
+CREATE TABLE USER
+(
+    ID         BIGINT PRIMARY KEY AUTO_INCREMENT,
+    NAME       VARCHAR(100),
+    TEL        VARCHAR(20) UNIQUE,
+    AVATAR_URL VARCHAR(1024),
+    ADDRESS    VARCHAR(1024),
+    CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+    UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO USER(ID,NAME, TEL, AVATAR_URL, ADDRESS)
+VALUES (1,'user1', '13800000000', 'http://url', '火星')
