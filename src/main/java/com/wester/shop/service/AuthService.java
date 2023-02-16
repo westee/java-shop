@@ -3,12 +3,12 @@ package com.wester.shop.service;
 import com.wester.shop.generate.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+@SuppressWarnings("EI_EXPOSE_REP2")
 @Service
 public class AuthService {
-    private UserService userService;
-    private MockSmsCodeService smsCodeService;
-    private VerificationCodeCheckService verificationCodeCheckService;
+    private final UserService userService;
+    private final MockSmsCodeService smsCodeService;
+    private final VerificationCodeCheckService verificationCodeCheckService;
     @Autowired
     public AuthService(UserService userService,
                        MockSmsCodeService smsCodeService,

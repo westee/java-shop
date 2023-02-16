@@ -3,16 +3,13 @@ package com.wester.shop.service;
 import com.wester.shop.dao.UserDao;
 import com.wester.shop.generate.User;
 import org.apache.ibatis.exceptions.PersistenceException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-
 @Service
 public class UserService {
-    private UserDao userDao;
+    private final UserDao userDao;
 
-    @Autowired
     public UserService(UserDao userDao) {
         this.userDao = userDao;
     }

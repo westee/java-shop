@@ -10,10 +10,9 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 @Service
 public class ShiroRealm extends AuthorizingRealm {
-    private VerificationCodeCheckService verificationCodeCheckService;
+    private final VerificationCodeCheckService verificationCodeCheckService;
 
     @Autowired
     public ShiroRealm(VerificationCodeCheckService verificationCodeCheckService) {
