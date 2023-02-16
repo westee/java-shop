@@ -1,17 +1,11 @@
 package com.wester.shop.dao;
 
-
 import com.wester.shop.generate.User;
 import com.wester.shop.generate.UserExample;
 import com.wester.shop.generate.UserMapper;
-import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.List;
 
 @Service
 public class UserDao {
