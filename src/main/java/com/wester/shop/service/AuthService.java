@@ -3,7 +3,6 @@ package com.wester.shop.service;
 import com.wester.shop.generate.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-@SuppressWarnings("EI_EXPOSE_REP2")
 @Service
 public class AuthService {
     private final UserService userService;

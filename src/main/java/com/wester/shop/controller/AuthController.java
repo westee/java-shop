@@ -2,25 +2,35 @@ package com.wester.shop.controller;
 
 import com.wester.shop.generate.User;
 import com.wester.shop.service.AuthService;
+import com.wester.shop.service.CheckTelService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api")
 public class AuthController {
-    private AuthService authService;
+    private final AuthService authService;
+    private final CheckTelService checkTelService;
 
     @Autowired
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CheckTelService checkTelService) {
+        this.checkTelService = checkTelService;
         this.authService = authService;
     }
 
     @GetMapping("/code")
-    public User sendCode(@RequestParam String tel) {
-        return authService.sendVerificationCode(tel);
+    public void sendCode(@RequestParam String tel, HttpServletResponse response) {
+        if (checkTelService.verifyTelParams(tel)) {
+            authService.sendVerificationCode(tel);
+        } else {
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+        }
     }
 
     @PostMapping("/login")
@@ -35,6 +45,12 @@ public class AuthController {
     }
 
     public static class TelAndCode {
+
+        public TelAndCode(String tel, String code) {
+            this.tel = tel;
+            this.code = code;
+        }
+
         private String tel;
         private String code;
 
