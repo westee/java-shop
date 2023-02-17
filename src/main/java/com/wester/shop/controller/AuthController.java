@@ -3,15 +3,13 @@ package com.wester.shop.controller;
 import com.wester.shop.generate.User;
 import com.wester.shop.service.AuthService;
 import com.wester.shop.service.CheckTelService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
-
 @RestController
 @RequestMapping("/api")
 public class AuthController {
@@ -25,7 +23,7 @@ public class AuthController {
     }
 
     @GetMapping("/code")
-    public void sendCode(@RequestParam String tel, HttpServletResponse response) {
+    public void sendCode(@RequestParam("tel") String tel, HttpServletResponse response) {
         if (checkTelService.verifyTelParams(tel)) {
             authService.sendVerificationCode(tel);
         } else {
