@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CheckTelServiceTest {
-    private static AuthController.TelAndCode validParam = new AuthController.TelAndCode("13112345678", "000000");
-    private static AuthController.TelAndCode invalidParam = new AuthController.TelAndCode("23112345678", "000000");
+    public static AuthController.TelAndCode validParam = new AuthController.TelAndCode("13112345678", "000000");
+    public static AuthController.TelAndCode invalidParam = new AuthController.TelAndCode("23112345678", "000000");
     @Test
     void returnTrueIfValid() {
         Assertions.assertTrue(new CheckTelService().verifyTelParams(validParam.getTel()));
