@@ -11,11 +11,11 @@ class CheckTelServiceTest {
     public static AuthController.TelAndCode invalidParam = new AuthController.TelAndCode("23112345678", "000000");
     @Test
     void returnTrueIfValid() {
-        Assertions.assertTrue(new CheckTelService().verifyTelParams(validParam.getTel()));
+        Assertions.assertTrue(new CheckTelService().verifyTelParams(validParam));
     }
 
     @Test
     void returnFalseIfInvalid() {
-        Assertions.assertFalse(new CheckTelService().verifyTelParams(invalidParam.getTel()));
+        Assertions.assertFalse(new CheckTelService().verifyTelParams(invalidParam));
     }
 }

@@ -1,17 +1,19 @@
 package com.wester.shop.controller;
 
-import com.wester.shop.generate.User;
+import com.wester.shop.entity.LoginResponse;
 import com.wester.shop.service.AuthService;
 import com.wester.shop.service.CheckTelService;
-import jakarta.servlet.http.HttpServletResponse;
+import com.wester.shop.service.UserContext;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class AuthController {
     private final AuthService authService;
     private final CheckTelService checkTelService;
@@ -22,24 +24,38 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping("/code")
-    public void sendCode(@RequestParam("tel") String tel, HttpServletResponse response) {
-        if (checkTelService.verifyTelParams(tel)) {
-            authService.sendVerificationCode(tel);
+    @PostMapping("/code")
+    public void sendCode(@RequestBody TelAndCode telAndCode, HttpServletResponse response) {
+        if (checkTelService.verifyTelParams(telAndCode)) {
+            System.out.println("send code");
+            authService.sendVerificationCode(telAndCode.getTel());
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
         }
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody TelAndCode telAndCode) {
+    public void login(@RequestBody TelAndCode telAndCode, HttpServletResponse response) {
         // https://shiro.apache.org/authentication.html
         UsernamePasswordToken token = new UsernamePasswordToken(telAndCode.getTel(), telAndCode.getCode());
         token.setRememberMe(true);
+        SecurityUtils.getSubject().login(token);
+    }
 
-        Subject currentUser = SecurityUtils.getSubject();
-        currentUser.login(token);
-        return null;
+    @GetMapping("/logout")
+    public void logout() {
+        SecurityUtils.getSubject().logout();
+    }
+
+    @GetMapping("/status")
+    public LoginResponse getStatus() {
+        System.out.println("===========");
+        System.out.println(SecurityUtils.getSubject().getPrincipal());
+        if (UserContext.getCurrentUser() != null) {
+            return LoginResponse.alreadyLogin(UserContext.getCurrentUser());
+        } else {
+            return LoginResponse.notLogin();
+        }
     }
 
     public static class TelAndCode {

@@ -1,4 +1,4 @@
-package com.hcsp.wxshop.config;
+package com.wester.shop.config;
 
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
 import org.springframework.stereotype.Component;
