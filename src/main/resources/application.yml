@@ -7,3 +7,9 @@ spring:
 
 mybatis:
   config-location: classpath:db/mybatis/config.xml
+
+pagehelper:
+  autoDialect: true
+  closeConn: true
+  reasonable: false
+  defaultCount: true

@@ -35,5 +35,30 @@
             <generatedKey column="ID" sqlStatement="MySql" identity="true" />
         </table>
 
+        <table schema="shop" tableName="GOODS" domainObjectName="Goods" >
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="ID" sqlStatement="MySql" identity="true" />
+        </table>
+
+        <table schema="shop" tableName="SHOP" domainObjectName="Shop" >
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="ID" sqlStatement="MySql" identity="true" />
+        </table>
+
+        <table schema="shop" tableName="ORDER" domainObjectName="Order" >
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="ID" sqlStatement="MySql" identity="true" />
+        </table>
+
+        <table schema="shop" tableName="SHOPPING_CART" domainObjectName="ShoppingCart" >
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="ID" sqlStatement="MySql" identity="true" />
+        </table>
+
+        <table schema="shop" tableName="ORDER_GOODS" domainObjectName="OrderGoods" >
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="ID" sqlStatement="MySql" identity="true" />
+        </table>
+
     </context>
 </generatorConfiguration>

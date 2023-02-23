@@ -2,6 +2,7 @@
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
 
+
     <settings>
         <!-- 使用驼峰命名法转换字段。 -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
@@ -24,5 +25,7 @@
         <mapper resource="db/mybatis/OrderGoodsMapper.xml"/>
         <mapper resource="db/mybatis/ShoppingCartMapper.xml"/>
     </mappers>
+
+
 
 </configuration>
