@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="false" scanPeriod="60000" debug="false">
+    <property name="LOG_HOME" value="./logs"/>
+    <!-- 使用标准输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!-- 处理error以及更高等级 -->
+            <level>ERROR</level>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 将log输出到文件 -->
+    <appender name="WXSHOP-LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- LOG_HOME 是当前目录 projectname/home -->
+            <fileNamePattern>${LOG_HOME}/wxshop-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 最大文件个数 -->
+            <maxHistory>30</maxHistory>
+            <!-- 单个文件大于10mb 会重开一个文件进行记录。 -->
+            <MaxFileSize>10MB</MaxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="WXSHOP-ERROR-LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>error</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/wxshop-error-log-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <MaxFileSize>10MB</MaxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <root level="TRACE">
+        <!-- 引用上面的STDOUT appender进行操作 -->
+        <appender-ref ref="STDOUT"/>
+        <!-- 引用上面的WXSHOP-ERROR-LOG-FILE appender进行操作 -->
+        <appender-ref ref="WXSHOP-ERROR-LOG-FILE"/>
+    </root>
+
+</configuration>
