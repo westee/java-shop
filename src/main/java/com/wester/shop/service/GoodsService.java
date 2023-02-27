@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class GoodsService {
@@ -54,5 +56,12 @@ public class GoodsService {
 
     public List<Goods> getGoods(long goodsId) {
         return Arrays.asList(goodsMapper.selectByPrimaryKey(goodsId));
+    }
+
+    public Map<Long, Goods> getGoodsToMapByGoodsIds(List<Long> goodsIds) {
+        GoodsExample example = new GoodsExample();
+        example.createCriteria().andIdIn(goodsIds);
+        Map<Long, Goods> collect = goodsMapper.selectByExample(example).stream().collect(Collectors.toMap(Goods::getId, x -> x));
+        return collect;
     }
 }
