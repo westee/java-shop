@@ -72,7 +72,7 @@ public class ShoppingCartService {
 
         Map<Long, Goods> goodsToMapByGoodsIds = goodsService.getGoodsToMapByGoodsIds(goodsIds);
 
-        List<ShoppingCart> collect = request.getGoods().stream().map(item -> makeShoppingCartRow(item, goodsToMapByGoodsIds)).toList();
+        List<ShoppingCart> collect = request.getGoods().stream().map(item -> makeShoppingCartRow(item, goodsToMapByGoodsIds)).collect(Collectors.toList());
 
 
         try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {

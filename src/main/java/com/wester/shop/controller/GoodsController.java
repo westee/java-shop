@@ -26,7 +26,7 @@ public class GoodsController {
     public Response<Goods> addGoods(@RequestBody Goods goods, HttpServletResponse response) {
         clean(goods);
         response.setStatus(HttpServletResponse.SC_CREATED);
-        try{
+        try {
             return Response.of(goodsService.insertGoods(goods));
         } catch (HttpException e) {
             response.setStatus(e.getStatusCode());
@@ -45,14 +45,14 @@ public class GoodsController {
 
     @GetMapping("goods")
     public List<Goods> getGoodsByGoodsId(@RequestParam(name = "shopId", required = false) Integer shopId,
-                                         @RequestParam(name = "pageSize", required = false,defaultValue = "10") int pageSize,
-                                         @RequestParam(name = "pageNum",required = false, defaultValue = "1") int pageNum,
-                                         @RequestParam(name ="goodsId", required = false) Optional<Integer> goodsId) {
+                                         @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+                                         @RequestParam(name = "pageNum", required = false, defaultValue = "1") int pageNum,
+                                         @RequestParam(name = "goodsId", required = false) Optional<Integer> goodsId) {
 
-        if(goodsId.isEmpty()) {
-            return goodsService.getGoods(pageNum, pageSize, shopId);
-        } else {
+        if (goodsId.isPresent()) {
             return goodsService.getGoods(goodsId.get());
+        } else {
+            return goodsService.getGoods(pageNum, pageSize, shopId);
         }
     }
 

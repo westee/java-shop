@@ -27,10 +27,10 @@ public class ShopController {
     public PageResponse<Shop> getShop(@RequestParam(name = "pageNum", defaultValue = "1", required = false) Integer pageNum,
                                       @RequestParam(name = "pageSize", defaultValue = "10", required = false) Integer pageSize,
                                       @RequestParam(name = "shopId", required = false) Optional<Long> shopId) {
-        if (shopId.isEmpty()) {
-            return shopService.getShopByUserId(UserContext.getCurrentUser().getId(), pageNum, pageSize);
-        } else {
+        if (shopId.isPresent()) {
             return shopService.getShopByShopId(shopId.get());
+        } else {
+            return shopService.getShopByUserId(UserContext.getCurrentUser().getId(), pageNum, pageSize);
         }
     }
 
