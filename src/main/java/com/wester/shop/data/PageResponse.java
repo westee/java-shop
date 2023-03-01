@@ -1,7 +1,5 @@
 package com.wester.shop.data;
 
-import com.wester.shop.generate.Shop;
-
 import java.util.List;
 
 public class PageResponse<T> {

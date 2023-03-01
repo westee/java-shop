@@ -4,13 +4,11 @@ import com.github.pagehelper.PageHelper;
 import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.GoodsStatus;
 import com.wester.shop.exceptions.HttpException;
-import com.wester.shop.generate.Goods;
 import com.wester.shop.generate.Shop;
 import com.wester.shop.generate.ShopExample;
 import com.wester.shop.generate.ShopMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
