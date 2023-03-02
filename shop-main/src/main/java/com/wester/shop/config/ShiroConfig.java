@@ -7,6 +7,7 @@ import com.wester.shop.service.VerificationCodeCheckService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.Authorizer;
 import org.apache.shiro.authz.ModularRealmAuthorizer;
+import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -14,8 +15,6 @@ import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.SimpleCookie;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
-import org.crazycake.shiro.RedisCacheManager;
-import org.crazycake.shiro.RedisManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -73,24 +72,16 @@ public class ShiroConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public DefaultWebSecurityManager mySecurityManager(ShiroRealm shiroRealm, RedisCacheManager cacheManager) {
+    public DefaultWebSecurityManager mySecurityManager(ShiroRealm shiroRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
 
         securityManager.setRealm(shiroRealm);
-        securityManager.setCacheManager(cacheManager);
+//        securityManager.setCacheManager(cacheManager);
+        securityManager.setCacheManager(new MemoryConstrainedCacheManager());
         securityManager.setSessionManager(new DefaultWebSessionManager());
         securityManager.setRememberMeManager(rememberMeManager());
         SecurityUtils.setSecurityManager(securityManager);
         return securityManager;
-    }
-
-    @Bean
-    public RedisCacheManager redisManager() {
-        RedisCacheManager redisCacheManager = new RedisCacheManager();
-        RedisManager redisManager = new RedisManager();
-        redisManager.setHost(redisHost+":"+redisPort);
-        redisCacheManager.setRedisManager(redisManager);
-        return redisCacheManager;
     }
 
     public CookieRememberMeManager rememberMeManager() {

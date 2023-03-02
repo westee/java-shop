@@ -22,9 +22,12 @@ dubbo:
     name: dubbo
     port: -1
   registry:
-    address: zookeeper://${zookeeper.address:127.0.0.1}:2181
+    address: zookeeper://127.0.0.1:2181
 
 myshop:
   redis:
     host: 127.0.0.1
     port: 6379
+
+server:
+  port: 8080
