@@ -4,6 +4,7 @@ import com.wester.api.data.GoodsInfo;
 import com.wester.api.data.OrderInfo;
 import com.wester.api.generate.Order;
 import com.wester.api.rpc.OrderRpcService;
+import com.wester.shop.dao.GoodsStockMapper;
 import com.wester.shop.entity.GoodsWithNumber;
 import com.wester.shop.entity.OrderResponse;
 import com.wester.shop.exceptions.HttpException;
@@ -11,6 +12,10 @@ import com.wester.shop.generate.Goods;
 import com.wester.shop.generate.ShopMapper;
 import com.wester.shop.generate.UserMapper;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +36,10 @@ public class OrderService {
 
     ShopMapper shopMapper;
 
+    SqlSessionFactory sessionFactory;
+
+    private static Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
+
     @Autowired
     public OrderService(GoodsService goodsService, UserMapper userMapper, ShopMapper shopMapper) {
         this.goodsService = goodsService;
@@ -39,6 +48,9 @@ public class OrderService {
     }
 
     public OrderResponse createOrder(OrderInfo orderInfo, Long userId) {
+        if (!deductStock(orderInfo)) {
+            throw HttpException.gone("库存不足");
+        }
         List<Long> goodsIds = orderInfo.getGoods().stream().map(GoodsInfo::getId).collect(Collectors.toList());
 
         // goodsId , goods
@@ -56,6 +68,22 @@ public class OrderService {
         orderResponse.setGoods(orderInfo.getGoods().stream().
                 map(goodsInfo -> generateGoodsWithNumber(goodsInfo, goodsToMapByGoodsIds)).collect(Collectors.toList()));
         return orderResponse;
+    }
+
+    private Boolean deductStock(OrderInfo orderInfo) {
+        try (SqlSession session = sessionFactory.openSession(false)) {
+            GoodsStockMapper mapper = session.getMapper(GoodsStockMapper.class);
+            for (GoodsInfo goods :
+                    orderInfo.getGoods()) {
+                if (mapper.deductStock(orderInfo) <= 0) {
+                    LOGGER.error("商品id:" + goods.getId() + "; 数量" + goods.getNumber() + "库存不足");
+                    session.rollback();
+                    return false;
+                }
+            }
+            session.commit();
+            return true;
+        }
     }
 
     private GoodsWithNumber generateGoodsWithNumber(GoodsInfo goodsInfo, Map<Long, Goods> goodsToMapByGoodsIds) {
