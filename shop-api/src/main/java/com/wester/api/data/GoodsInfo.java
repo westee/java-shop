@@ -6,6 +6,10 @@ public class GoodsInfo implements Serializable {
     private long id;
     private int number;
 
+    public GoodsInfo() {
+
+    }
+
     public long getId() {
         return id;
     }

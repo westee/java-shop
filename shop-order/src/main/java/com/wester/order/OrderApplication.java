@@ -5,8 +5,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
-@SpringBootApplication(scanBasePackages = "com.wester.api", exclude = DataSourceAutoConfiguration.class)
-@EnableDubbo(scanBasePackages = "com.wester.api")
+//@SpringBootApplication(scanBasePackages = "com.wester.api", exclude = DataSourceAutoConfiguration.class)
+
+@SpringBootApplication
+//@EnableDubbo(scanBasePackages = "com.wester.api")
+@EnableDubbo
 public class OrderApplication {
     public static void main(String[] args) {
         SpringApplication.run(OrderApplication.class, args);

@@ -2,6 +2,7 @@ package com.wester.shop.service;
 
 import com.wester.api.data.GoodsInfo;
 import com.wester.api.data.OrderInfo;
+import com.wester.api.data.RpcOrderGoods;
 import com.wester.api.generate.Order;
 import com.wester.api.rpc.OrderRpcService;
 import com.wester.shop.dao.GoodsStockMapper;
@@ -14,6 +15,8 @@ import com.wester.shop.generate.UserMapper;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.mgt.SecurityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +44,10 @@ public class OrderService {
     private static Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
-    public OrderService(GoodsService goodsService, UserMapper userMapper, ShopMapper shopMapper) {
+    public OrderService(GoodsService goodsService, UserMapper userMapper, ShopMapper shopMapper, SqlSessionFactory sqlSessionFactory) {
         this.goodsService = goodsService;
         this.userMapper = userMapper;
+        this.sessionFactory = sqlSessionFactory;
         this.shopMapper = shopMapper;
     }
 
@@ -57,7 +61,7 @@ public class OrderService {
         Map<Long, Goods> goodsToMapByGoodsIds = goodsService.getGoodsToMapByGoodsIds(goodsIds);
         Order order = new Order();
         order.setUserId(userId);
-        order.setUserId(userId);
+        order.setShopId(new ArrayList<>(goodsToMapByGoodsIds.values()).get(0).getShopId());
         order.setTotalPrice(calcTotalPrice(orderInfo.getGoods(), goodsToMapByGoodsIds));
         order.setAddress(userMapper.selectByPrimaryKey(userId).getAddress());
 
@@ -75,7 +79,7 @@ public class OrderService {
             GoodsStockMapper mapper = session.getMapper(GoodsStockMapper.class);
             for (GoodsInfo goods :
                     orderInfo.getGoods()) {
-                if (mapper.deductStock(orderInfo) <= 0) {
+                if (mapper.deductStock(goods) <= 0) {
                     LOGGER.error("商品id:" + goods.getId() + "; 数量" + goods.getNumber() + "库存不足");
                     session.rollback();
                     return false;
@@ -104,5 +108,13 @@ public class OrderService {
         }
 
         return n;
+    }
+
+    public RpcOrderGoods getOrderById(long orderId) {
+        if (orderRpcService.isOrderBelongToUser(UserContext.getCurrentUser().getId(), orderId)) {
+            return orderRpcService.getOrderById(orderId);
+        } else {
+            throw HttpException.forbidden("没有权限");
+        }
     }
 }

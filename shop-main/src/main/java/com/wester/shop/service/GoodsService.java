@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.wester.shop.entity.GoodsStatus;
 import com.wester.shop.exceptions.HttpException;
 import com.wester.shop.generate.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -17,6 +18,7 @@ public class GoodsService {
     private final GoodsMapper goodsMapper;
     private final ShopMapper shopMapper;
 
+    @Autowired
     public GoodsService(GoodsMapper goodsMapper, ShopMapper shopMapper) {
         this.shopMapper = shopMapper;
         this.goodsMapper = goodsMapper;

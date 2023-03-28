@@ -8,10 +8,13 @@
     </settings>
 
     <typeAliases>
-        <typeAlias alias="OrderInfo" type="com/wester/api/data/OrderInfo.java" />
+        <typeAlias alias="OrderInfo" type="com.wester.api.data.OrderInfo" />
+        <typeAlias alias="GoodsInfo" type="com.wester.api.data.GoodsInfo" />
     </typeAliases>
 
     <mappers>
+        <mapper resource="db/mybatis/MyOrderMapper.xml" />
+        <mapper resource="db/mybatis/OrderMapper.xml" />
         <mapper resource="db/mybatis/MyOrderMapper.xml" />
     </mappers>
 
