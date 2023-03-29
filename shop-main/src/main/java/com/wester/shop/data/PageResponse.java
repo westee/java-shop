@@ -5,7 +5,7 @@ import java.util.List;
 public class PageResponse<T> {
     int pageNum;
     int pageSize;
-    long count;
+    long totalPage;
     List<T> data;
 
     public PageResponse() {}
@@ -13,7 +13,7 @@ public class PageResponse<T> {
     public PageResponse(int pageNum, int pageSize, long count, List<T> data) {
         this.pageNum = pageNum;
         this.pageSize = pageSize;
-        this.count = count;
+        this.totalPage = count;
         this.data = data;
     }
 
@@ -25,8 +25,24 @@ public class PageResponse<T> {
         return pageSize;
     }
 
-    public long getCount() {
-        return count;
+    public long getTotalPage() {
+        return totalPage;
+    }
+
+    public void setPageNum(int pageNum) {
+        this.pageNum = pageNum;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public void setTotalPage(long totalPage) {
+        this.totalPage = totalPage;
+    }
+
+    public void setData(List<T> data) {
+        this.data = data;
     }
 
     public List<T> getData() {

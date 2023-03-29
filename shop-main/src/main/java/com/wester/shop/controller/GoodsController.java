@@ -1,8 +1,10 @@
 package com.wester.shop.controller;
 
+import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.Response;
-import com.wester.shop.exceptions.HttpException;
+import com.wester.api.exceptions.HttpException;
 import com.wester.shop.generate.Goods;
+import com.wester.shop.generate.Shop;
 import com.wester.shop.service.GoodsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -44,16 +46,20 @@ public class GoodsController {
     }
 
     @GetMapping("goods")
-    public List<Goods> getGoodsByGoodsId(@RequestParam(name = "shopId", required = false) Integer shopId,
-                                         @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-                                         @RequestParam(name = "pageNum", required = false, defaultValue = "1") int pageNum,
-                                         @RequestParam(name = "goodsId", required = false) Optional<Integer> goodsId) {
+    public PageResponse<Goods> getGoodsByGoodsId(@RequestParam(name = "shopId", required = false) Integer shopId,
+                                                 @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+                                                 @RequestParam(name = "pageNum", required = false, defaultValue = "1") int pageNum) {
+        return goodsService.getGoods(pageNum, pageSize, shopId);
+    }
 
-        if (goodsId.isPresent()) {
-            return goodsService.getGoods(goodsId.get());
-        } else {
-            return goodsService.getGoods(pageNum, pageSize, shopId);
-        }
+    @GetMapping("goods/{goodsId}")
+    public Response<Goods> getGoodsByGoodsId(@PathVariable(name = "goodsId") long goodsId) {
+        return goodsService.getGoods(goodsId);
+    }
+
+    @PatchMapping("goods/{goodsId}")
+    public Response<Goods> getGoodsByGoodsId(@PathVariable("goodsId")  long goodsId, @RequestBody Goods goods) {
+        return goodsService.updateGoodsByGoodsId(goodsId, goods);
     }
 
     private void clean(Goods goods) {

@@ -1,8 +1,11 @@
 package com.wester.shop.service;
 
 import com.github.pagehelper.PageHelper;
+import com.wester.api.data.DataStatus;
+import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.GoodsStatus;
-import com.wester.shop.exceptions.HttpException;
+import com.wester.api.exceptions.HttpException;
+import com.wester.shop.entity.Response;
 import com.wester.shop.generate.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,7 @@ public class GoodsService {
             throw new HttpException(403, "无权访问");
         }
         if (Objects.equals(UserContext.getCurrentUser().getId(), shop.getOwnerUserId())) {
+            goods.setStatus(DataStatus.OK.getName());
             long id = goodsMapper.insert(goods);
             goods.setId(id);
             return goods;
@@ -49,15 +53,26 @@ public class GoodsService {
         throw HttpException.forbidden("无权访问");
     }
 
-    public List<Goods> getGoods(int pageNum, int pageSize, long shopId) {
+    public PageResponse<Goods> getGoods(int pageNum, int pageSize, long shopId) {
+
         GoodsExample goodsExample = new GoodsExample();
         goodsExample.createCriteria().andShopIdEqualTo(shopId).andStatusEqualTo(GoodsStatus.OK.getName());
+
+        long totalGoods = goodsMapper.countByExample(goodsExample);
+        long totalPage = totalGoods % pageSize == 0 ? totalGoods / pageSize : totalGoods / pageSize + 1;
+
         PageHelper.startPage(pageNum, pageSize);
-        return goodsMapper.selectByExample(goodsExample);
+        List<Goods> goods = goodsMapper.selectByExample(goodsExample);
+        PageResponse<Goods> goodsPageResponse = new PageResponse<>();
+        goodsPageResponse.setData(goods);
+        goodsPageResponse.setPageNum(pageNum);
+        goodsPageResponse.setPageSize(pageSize);
+        goodsPageResponse.setTotalPage(totalPage);
+        return goodsPageResponse;
     }
 
-    public List<Goods> getGoods(long goodsId) {
-        return Arrays.asList(goodsMapper.selectByPrimaryKey(goodsId));
+    public Response<Goods> getGoods(long goodsId) {
+        return Response.of(goodsMapper.selectByPrimaryKey(goodsId));
     }
 
     public Map<Long, Goods> getGoodsToMapByGoodsIds(List<Long> goodsIds) {
@@ -65,5 +80,11 @@ public class GoodsService {
         example.createCriteria().andIdIn(goodsIds);
         Map<Long, Goods> collect = goodsMapper.selectByExample(example).stream().collect(Collectors.toMap(Goods::getId, x -> x));
         return collect;
+    }
+
+    public Response<Goods> updateGoodsByGoodsId(long goodsId, Goods goods) {
+        goods.setId(goodsId);
+        goodsMapper.updateByPrimaryKeySelective(goods);
+        return Response.of(goods);
     }
 }
