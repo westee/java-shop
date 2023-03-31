@@ -14,31 +14,26 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ShoppingCartService {
-    private ShoppingCartMapper shoppingCartMapper;
-    private ShoppingCartQueryMapper shoppingCartQueryMapper;
-    private GoodsService goodsService;
-    private SqlSessionFactory sqlSessionFactory;
+    private final ShoppingCartQueryMapper shoppingCartQueryMapper;
+    private final GoodsService goodsService;
+    private final SqlSessionFactory sqlSessionFactory;
 
-    public ShoppingCartService(ShoppingCartMapper shoppingCartMapper, ShoppingCartQueryMapper shoppingCartQueryMapper,
+    public ShoppingCartService(ShoppingCartQueryMapper shoppingCartQueryMapper,
                                GoodsService goodsService, SqlSessionFactory sqlSessionFactory) {
         this.goodsService = goodsService;
         this.sqlSessionFactory = sqlSessionFactory;
-        this.shoppingCartMapper = shoppingCartMapper;
         this.shoppingCartQueryMapper = shoppingCartQueryMapper;
     }
 
     public PageResponse<ShoppingCartData> getShoppingCartOfUser(int pageNum, int pageSize, Long userId) {
         int count = shoppingCartQueryMapper.countShopsInUserShoppingCart(userId);
         int offset = (pageNum - 1) * pageSize;
-        System.out.println(offset);
+        int totalPage = count % pageSize == 0 ? count / pageSize : count / pageSize + 1;
         List<ShoppingCartData> shoppingCartData = shoppingCartQueryMapper.selectShoppingCartDataByUserId(userId, pageSize, offset)
                 .stream()
                 .collect(Collectors.groupingBy(shoppingCartData1 -> shoppingCartData1.getShop().getId()))
@@ -46,9 +41,15 @@ public class ShoppingCartService {
                 .stream()
                 .map(this::merge)
                 .collect(Collectors.toList());
-        return PageResponse.pageData(pageNum, pageSize, count, shoppingCartData);
+        return PageResponse.pageData(pageNum, pageSize, totalPage, shoppingCartData);
     }
 
+    /**
+     * 将同一个shop下的多条goods记录放到同一个ShoppingCartData的goods List中
+     *
+     * @param shoppingCartData      待处理购物车数据列表
+     * @return ShoppingCartData     处理好的购物车数据列表
+     */
     private ShoppingCartData merge(List<ShoppingCartData> shoppingCartData) {
         ShoppingCartData result = new ShoppingCartData();
         result.setShop(shoppingCartData.get(0).getShop());
@@ -56,9 +57,31 @@ public class ShoppingCartService {
                 .map(ShoppingCartData::getGoods)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
-        result.setGoods(goods);
+
+        List<ShoppingCartGoods> shoppingCartGoods = mergeRepeatGoods(goods);
+        result.setGoods(shoppingCartGoods);
         return result;
 
+    }
+
+    /**
+     * 将多个相同的goodsId合并成一个，并修改number
+     * @param goodsList                 同一个店铺下的购物车中的商品
+     * @return List<ShoppingCartGoods>  将多个相同商品合并为一个
+     */
+    private List<ShoppingCartGoods> mergeRepeatGoods(List<ShoppingCartGoods> goodsList) {
+        HashMap<Long, ShoppingCartGoods> goodsMap = new HashMap<>();
+        goodsList.forEach
+                (goods -> {
+                    Long goodsId = goods.getId();
+                    if (goodsMap.containsKey(goodsId)) {
+                        goods.setNumber(goodsMap.get(goodsId).getNumber() + goods.getNumber());
+                    } else {
+                        goodsMap.put(goodsId, goods);
+                    }
+                });
+
+        return new ArrayList<>(goodsMap.values());
     }
 
     public void deleteShoppingCart(long goodsId, Long userId) {
