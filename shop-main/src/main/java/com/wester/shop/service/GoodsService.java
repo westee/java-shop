@@ -2,15 +2,14 @@ package com.wester.shop.service;
 
 import com.github.pagehelper.PageHelper;
 import com.wester.api.data.DataStatus;
+import com.wester.api.exceptions.HttpException;
 import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.GoodsStatus;
-import com.wester.api.exceptions.HttpException;
 import com.wester.shop.entity.Response;
 import com.wester.shop.generate.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,12 +26,16 @@ public class GoodsService {
         this.goodsMapper = goodsMapper;
     }
 
-    public void deleteGoods(long goodsId) {
+    public Goods deleteGoods(long goodsId) {
         Goods goods = goodsMapper.selectByPrimaryKey(goodsId);
+        if(goods == null) {
+            throw HttpException.forbidden("参数非法");
+        }
         Shop shop = shopMapper.selectByPrimaryKey(goods.getShopId());
         if (Objects.equals(UserContext.getCurrentUser().getId(), shop.getOwnerUserId())) {
             goods.setStatus(GoodsStatus.DELETED.getName());
             goodsMapper.updateByPrimaryKey(goods);
+            return goods;
         } else {
             throw HttpException.forbidden("无权访问");
         }
@@ -71,8 +74,8 @@ public class GoodsService {
         return goodsPageResponse;
     }
 
-    public Response<Goods> getGoods(long goodsId) {
-        return Response.of(goodsMapper.selectByPrimaryKey(goodsId));
+    public Goods getGoods(long goodsId) {
+        return goodsMapper.selectByPrimaryKey(goodsId);
     }
 
     public Map<Long, Goods> getGoodsToMapByGoodsIds(List<Long> goodsIds) {

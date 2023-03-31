@@ -1,8 +1,8 @@
 package com.wester.shop.controller;
 
+import com.wester.api.exceptions.HttpException;
 import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.Response;
-import com.wester.shop.exceptions.HttpException;
 import com.wester.shop.generate.Shop;
 import com.wester.shop.service.ShopService;
 import com.wester.shop.service.UserContext;
@@ -11,12 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
 public class ShopController {
-    private ShopService shopService;
+    private final ShopService shopService;
 
     @Autowired
     public ShopController(ShopService shopService) {
@@ -25,13 +24,14 @@ public class ShopController {
 
     @GetMapping("/shop")
     public PageResponse<Shop> getShop(@RequestParam(name = "pageNum", defaultValue = "1", required = false) Integer pageNum,
-                                      @RequestParam(name = "pageSize", defaultValue = "10", required = false) Integer pageSize,
-                                      @RequestParam(name = "shopId", required = false) Optional<Long> shopId) {
-        if (shopId.isPresent()) {
-            return shopService.getShopByShopId(shopId.get());
-        } else {
-            return shopService.getShopByUserId(UserContext.getCurrentUser().getId(), pageNum, pageSize);
-        }
+                                      @RequestParam(name = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+
+        return shopService.getShopsByUserId(UserContext.getCurrentUser().getId(), pageNum, pageSize);
+    }
+
+    @GetMapping("/shop/{shopId}")
+    public Response<Shop> getShopByShopId(@PathVariable(name = "shopId", required = false) long shopId) {
+        return Response.of("ok", shopService.getShopByShopId(shopId));
     }
 
     @PostMapping("/shop")

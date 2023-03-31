@@ -3,7 +3,7 @@ package com.wester.shop.service;
 import com.github.pagehelper.PageHelper;
 import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.GoodsStatus;
-import com.wester.shop.exceptions.HttpException;
+import com.wester.api.exceptions.HttpException;
 import com.wester.shop.generate.Shop;
 import com.wester.shop.generate.ShopExample;
 import com.wester.shop.generate.ShopMapper;
@@ -21,7 +21,7 @@ public class ShopService {
         this.shopMapper = mapper;
     }
 
-    public PageResponse<Shop> getShopByUserId(Long userId, Integer pageNum, Integer pageSize) {
+    public PageResponse<Shop> getShopsByUserId(Long userId, Integer pageNum, Integer pageSize) {
         ShopExample shopExample = new ShopExample();
         shopExample.createCriteria().andOwnerUserIdEqualTo(userId).andStatusEqualTo(GoodsStatus.OK.getName());
         long count = shopMapper.countByExample(shopExample);
@@ -34,6 +34,8 @@ public class ShopService {
         shop.setOwnerUserId(userId);
         shop.setId(null);
         shop.setStatus(GoodsStatus.OK.getName());
+        shop.setUpdatedAt(new Date());
+        shop.setCreatedAt(new Date());
         int shopId = shopMapper.insert(shop);
         shop.setId((long) shopId);
         return shop;
@@ -65,10 +67,7 @@ public class ShopService {
         }
     }
 
-    public PageResponse<Shop> getShopByShopId(long shopId) {
-        ShopExample shopExample = new ShopExample();
-        shopExample.createCriteria().andIdEqualTo(shopId).andStatusEqualTo(GoodsStatus.OK.getName());
-        List<Shop> shops = shopMapper.selectByExample(shopExample);
-        return PageResponse.pageData(0, 0, 1, shops);
+    public Shop getShopByShopId(long shopId) {
+        return shopMapper.selectByPrimaryKey(shopId);
     }
 }
