@@ -1,4 +1,4 @@
-package com.wester.shop.exceptions;
+package com.wester.api.exceptions;
 
 import org.springframework.http.HttpStatus;
 
@@ -28,6 +28,7 @@ public class HttpException extends RuntimeException {
 
     public HttpException(int statusCode, String message) {
         super(message);
+        this.message = message;
         this.statusCode = statusCode;
     }
 
