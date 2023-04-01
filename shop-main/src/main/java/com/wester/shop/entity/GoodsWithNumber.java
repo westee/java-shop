@@ -3,7 +3,7 @@ package com.wester.shop.entity;
 import com.wester.shop.generate.Goods;
 
 public class GoodsWithNumber extends Goods {
-    private int number;
+    private long number;
 
     public GoodsWithNumber() {
     }
@@ -22,11 +22,11 @@ public class GoodsWithNumber extends Goods {
         this.setDetails(goods.getDetails());
     }
 
-    public int getNumber() {
+    public long getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(long number) {
         this.number = number;
     }
 }

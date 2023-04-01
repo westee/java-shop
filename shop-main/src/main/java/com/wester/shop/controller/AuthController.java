@@ -27,7 +27,6 @@ public class AuthController {
     @PostMapping("/code")
     public void sendCode(@RequestBody TelAndCode telAndCode, HttpServletResponse response) {
         if (checkTelService.verifyTelParams(telAndCode)) {
-            System.out.println("send code");
             authService.sendVerificationCode(telAndCode.getTel());
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -35,22 +34,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public void login(@RequestBody TelAndCode telAndCode, HttpServletResponse response) {
+    public void login(@RequestBody TelAndCode telAndCode) {
         // https://shiro.apache.org/authentication.html
         UsernamePasswordToken token = new UsernamePasswordToken(telAndCode.getTel(), telAndCode.getCode());
         token.setRememberMe(true);
         SecurityUtils.getSubject().login(token);
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public void logout() {
         SecurityUtils.getSubject().logout();
     }
 
     @GetMapping("/status")
     public LoginResponse getStatus() {
-        System.out.println("===========");
-        System.out.println(SecurityUtils.getSubject().getPrincipal());
         if (UserContext.getCurrentUser() != null) {
             return LoginResponse.alreadyLogin(UserContext.getCurrentUser());
         } else {
