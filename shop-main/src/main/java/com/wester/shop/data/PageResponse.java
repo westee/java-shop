@@ -49,7 +49,7 @@ public class PageResponse<T> {
         return data;
     }
 
-    public static PageResponse pageData(Integer pageNum, Integer pageSize, long count, List data) {
+    public static <T> PageResponse<T> pageData(Integer pageNum, Integer pageSize, long count, List<T> data) {
         return new PageResponse<>(pageNum, pageSize, count, data);
     }
 }

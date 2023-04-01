@@ -1,22 +1,21 @@
 package com.wester.shop.service;
 
-import com.wester.api.data.GoodsInfo;
-import com.wester.api.data.OrderInfo;
-import com.wester.api.data.RpcOrderGoods;
+import com.wester.api.data.*;
 import com.wester.api.generate.Order;
+import com.wester.api.generate.OrderGoods;
 import com.wester.api.rpc.OrderRpcService;
 import com.wester.shop.dao.GoodsStockMapper;
+import com.wester.shop.data.OrderWithShopAndGoodsList;
 import com.wester.shop.entity.GoodsWithNumber;
 import com.wester.shop.entity.OrderResponse;
-import com.wester.shop.exceptions.HttpException;
+import com.wester.api.exceptions.HttpException;
 import com.wester.shop.generate.Goods;
+import com.wester.shop.generate.Shop;
 import com.wester.shop.generate.ShopMapper;
 import com.wester.shop.generate.UserMapper;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.mgt.SecurityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,7 @@ public class OrderService {
 
     SqlSessionFactory sessionFactory;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     public OrderService(GoodsService goodsService, UserMapper userMapper, ShopMapper shopMapper, SqlSessionFactory sqlSessionFactory) {
@@ -116,5 +115,43 @@ public class OrderService {
         } else {
             throw HttpException.forbidden("没有权限");
         }
+    }
+
+    public RpcOrderGoods updateOrderByOrderId(long orderId, Order order) {
+        return orderRpcService.updateOrderById(orderId, order);
+    }
+
+    public RpcOrderGoods deleteOrderByOrderId(long orderId) {
+        return orderRpcService.deleteOrderById(orderId, UserContext.getCurrentUser().getId());
+    }
+
+    public PageOrderResponse<OrderWithShopAndGoodsList> getOrderList(int pageSize, int pageNum, DataStatus status) {
+        Long userId = UserContext.getCurrentUser().getId();
+        PageOrderResponse<Order> ordersByUserId = orderRpcService.getOrdersByUserId(pageNum, pageSize, status, userId);
+
+        List<OrderWithShopAndGoodsList> collect = ordersByUserId.getData().stream().map(order -> {
+            OrderWithShopAndGoodsList orderWithShopAndGoodsList = new OrderWithShopAndGoodsList(order);
+            Long orderId = order.getId();
+            Shop shop = shopMapper.selectByPrimaryKey(order.getShopId());
+            orderWithShopAndGoodsList.setShop(shop);
+            List<OrderGoods> OrderGoods = orderRpcService.getGoodsIdsByOrderId(orderId);
+            List<GoodsWithNumber> goodsList = OrderGoods.stream().map(orderGoods ->
+            {
+                Goods goods = goodsService.getGoods(orderGoods.getGoodsId());
+                GoodsWithNumber goodsWithNumber = new GoodsWithNumber(goods);
+                goodsWithNumber.setNumber(orderGoods.getNumber());
+
+                return goodsWithNumber;
+            }).collect(Collectors.toList());
+
+            orderWithShopAndGoodsList.setGoods(goodsList);
+            return orderWithShopAndGoodsList;
+        }).collect(Collectors.toList());
+        PageOrderResponse<OrderWithShopAndGoodsList> orderPagesResponse = new PageOrderResponse<>();
+        orderPagesResponse.setPageSize(ordersByUserId.getPageSize());
+        orderPagesResponse.setPageNum(ordersByUserId.getPageNum());
+        orderPagesResponse.setTotalPage(ordersByUserId.getTotalPage());
+        orderPagesResponse.setData(collect);
+        return orderPagesResponse;
     }
 }
