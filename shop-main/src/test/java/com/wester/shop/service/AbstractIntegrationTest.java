@@ -1,10 +1,14 @@
 package com.wester.shop.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wester.shop.entity.LoginResponse;
+import com.wester.shop.entity.UserLoginResponse;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -14,6 +18,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+
+import static java.net.HttpURLConnection.HTTP_OK;
 
 public class AbstractIntegrationTest {
     @Autowired
@@ -42,6 +48,10 @@ public class AbstractIntegrationTest {
         URL url;
         url = new URL(getUrl(path));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        if (cookie != null) {
+            connection.setRequestProperty("Cookie", cookie);
+        }
+
         connection.setRequestMethod(requestMethod);
         if ("POST" == requestMethod) {
             connection.setDoOutput(true);
@@ -49,9 +59,7 @@ public class AbstractIntegrationTest {
             DataOutputStream out = new DataOutputStream(connection.getOutputStream());
             out.writeBytes(objectMapper.writeValueAsString(body));
         }
-        if (cookie != null) {
-            connection.setRequestProperty("Cookie", cookie);
-        }
+
 
         connection.setInstanceFollowRedirects(false);
         connection.connect();
@@ -67,7 +75,7 @@ public class AbstractIntegrationTest {
             }
             in.close();
         }
-
+        connection.disconnect();
         return new HttpResponse(responseCode,   content == null ? "" : content.toString(), connection.getHeaderFields());
     }
 
@@ -81,4 +89,20 @@ public class AbstractIntegrationTest {
         return "http://localhost:" + env.getProperty("local.server.port") + path;
     }
 
+    public UserLoginResponse loginAndGetCookie() throws IOException {
+        // 获取验证码
+        int responseCode = doHttpRequest("/api/v1/code", CheckTelServiceTest.validParam, null, "POST").code;
+        Assertions.assertEquals(HTTP_OK, responseCode);
+        // 使用验证码登录
+        HttpResponse loginResponse = doHttpRequest("/api/v1/login", CheckTelServiceTest.validParam,
+                null, RequestMethod.POST.name());
+        List<String> setCookie = loginResponse.headers.get("Set-Cookie");
+        // 得到cookie
+        String cookie = getSessionIdFromSetCookie(setCookie.stream().filter(c -> c.contains("JSESSIONID"))
+                .findFirst()
+                .get());
+        String statusResponse = doHttpRequest("/api/v1/status", null, cookie, RequestMethod.GET.name()).body;
+        LoginResponse statusResponseData = objectMapper.readValue(statusResponse, LoginResponse.class);
+        return new UserLoginResponse(cookie, statusResponseData.getUser());
+    }
 }

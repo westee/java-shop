@@ -110,11 +110,7 @@ public class OrderService {
     }
 
     public RpcOrderGoods getOrderById(long orderId) {
-        if (orderRpcService.isOrderBelongToUser(UserContext.getCurrentUser().getId(), orderId)) {
-            return orderRpcService.getOrderById(orderId);
-        } else {
-            throw HttpException.forbidden("没有权限");
-        }
+        return orderRpcService.getOrderById(orderId, UserContext.getCurrentUser().getId());
     }
 
     public RpcOrderGoods updateOrderByOrderId(long orderId, Order order) {

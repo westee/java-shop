@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3308/shop?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=GMT
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  config-location: classpath:db/mybatis/config.xml
+
+dubbo:
+  application:
+    name: dubbo-springboot-demo-consumer
+    qos-port: 22201
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    address: zookeeper://127.0.0.1:2181
+
+myshop:
+  redis:
+    host: 127.0.0.1
+    port: 6379

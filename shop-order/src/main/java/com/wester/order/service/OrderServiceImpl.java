@@ -42,8 +42,17 @@ public class OrderServiceImpl implements OrderRpcService {
     }
 
     @Override
-    public RpcOrderGoods getOrderById(long orderId) {
+    public RpcOrderGoods getOrderById(long orderId, long userId) {
+
         Order order = orderMapper.selectByPrimaryKey(orderId);
+        if(order == null) {
+            throw HttpException.notFound("订单未找到");
+        }
+
+        if(order.getUserId() != userId) {
+            throw HttpException.forbidden("没有权限");
+        }
+
         List<GoodsInfo> goodsInfos = myOrderMapper.getGoodsInfos(orderId);
         RpcOrderGoods rpcOrderGoods = new RpcOrderGoods();
         rpcOrderGoods.setOrder(order);
@@ -110,11 +119,6 @@ public class OrderServiceImpl implements OrderRpcService {
         orderGoodsExample.createCriteria().andOrderIdEqualTo(orderId);
         List<OrderGoods> orderGoodsList = orderGoodsMapper.selectByExample(orderGoodsExample);
         return orderGoodsList;
-    }
-
-    @Override
-    public boolean isOrderBelongToUser(Long id, long orderId) {
-        return false;
     }
 
     private void insertOrder(Order order) {
