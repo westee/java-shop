@@ -3,19 +3,17 @@ package com.wester.shop.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wester.shop.entity.LoginResponse;
 import com.wester.shop.entity.UserLoginResponse;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -45,38 +43,43 @@ public class AbstractIntegrationTest {
     }
 
     public HttpResponse doHttpRequest(String path, Object body, String cookie, String requestMethod) throws IOException {
-        URL url;
-        url = new URL(getUrl(path));
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        if (cookie != null) {
-            connection.setRequestProperty("Cookie", cookie);
+        OkHttpClient httpClient;
+        httpClient = new OkHttpClient();
+        Request.Builder builder;
+        RequestBody requestBody = null;
+        if(cookie != null) {
+            builder = new Request.Builder().addHeader("Cookie", cookie)
+                    .url(getUrl(path));
+        } else {
+            builder = new Request.Builder()
+                    .url(getUrl(path));
+        }
+        switch (requestMethod) {
+            case "GET":
+                builder = builder.get();
+                break;
+            case "DELETE":
+                builder = builder.delete();
+                break;
+            case "PATCH":
+                requestBody = RequestBody.create(objectMapper.writeValueAsString(body), okhttp3.MediaType.parse("application/json"));
+                builder = builder.patch(requestBody);
+                break;
+            case "POST":
+                if (body != null) {
+                    requestBody = RequestBody.create(objectMapper.writeValueAsString(body), okhttp3.MediaType.parse("application/json"));
+                }
+                builder = builder.post(requestBody);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid HTTP method: " + requestMethod);
         }
 
-        connection.setRequestMethod(requestMethod);
-        if ("POST" == requestMethod) {
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-            DataOutputStream out = new DataOutputStream(connection.getOutputStream());
-            out.writeBytes(objectMapper.writeValueAsString(body));
-        }
+        Request request = builder.build();
 
+        Response response = httpClient.newCall(request).execute();
 
-        connection.setInstanceFollowRedirects(false);
-        connection.connect();
-        StringBuffer content = null;
-        int responseCode = connection.getResponseCode();
-        if(responseCode >= 200 && responseCode < 300) {
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            content = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-        }
-        connection.disconnect();
-        return new HttpResponse(responseCode,   content == null ? "" : content.toString(), connection.getHeaderFields());
+        return new HttpResponse(response.code(), response.body().string(), response.headers().toMultimap());
     }
 
     private String getSessionIdFromSetCookie(String setCookie) {
