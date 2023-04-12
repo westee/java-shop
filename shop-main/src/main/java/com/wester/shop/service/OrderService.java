@@ -114,11 +114,30 @@ public class OrderService {
     }
 
     public RpcOrderGoods updateOrderByOrderId(long orderId, Order order) {
+        Long userId = UserContext.getCurrentUser().getId();
+        doGetOrderById(userId, orderId);
         return orderRpcService.updateOrderById(orderId, order);
     }
 
     public RpcOrderGoods deleteOrderByOrderId(long orderId) {
         return orderRpcService.deleteOrderById(orderId, UserContext.getCurrentUser().getId());
+    }
+
+    public RpcOrderGoods doGetOrderById(long userId, long orderId) {
+        RpcOrderGoods orderInDatabase = orderRpcService.getOrderById(orderId, userId);
+        if (orderInDatabase == null) {
+            throw HttpException.notFound("订单未找到: " + orderId);
+        }
+
+        Shop shop = shopMapper.selectByPrimaryKey(orderInDatabase.getOrder().getShopId());
+        if (shop == null) {
+            throw HttpException.notFound("店铺未找到: " + orderInDatabase.getOrder().getShopId());
+        }
+
+        if (shop.getOwnerUserId() != userId && orderInDatabase.getOrder().getUserId() != userId) {
+            throw HttpException.forbidden("无权访问！");
+        }
+        return orderInDatabase;
     }
 
     public PageOrderResponse<OrderWithShopAndGoodsList> getOrderList(int pageSize, int pageNum, DataStatus status) {

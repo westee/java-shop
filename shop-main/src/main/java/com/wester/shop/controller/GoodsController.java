@@ -35,11 +35,7 @@ public class GoodsController {
 
     @DeleteMapping("goods/{id}")
     public Response<Goods> deleteGoods(@PathVariable("id") long id) {
-        try {
-            return Response.of(goodsService.deleteGoods(id)) ;
-        } catch (HttpException e) {
-            return Response.of(e.getMessage(), null);
-        }
+        return Response.of(goodsService.deleteGoods(id));
     }
 
     @GetMapping("goods")

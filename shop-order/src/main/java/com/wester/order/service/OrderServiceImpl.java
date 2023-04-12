@@ -45,12 +45,15 @@ public class OrderServiceImpl implements OrderRpcService {
     public RpcOrderGoods getOrderById(long orderId, long userId) {
 
         Order order = orderMapper.selectByPrimaryKey(orderId);
-        if(order == null) {
-            throw HttpException.notFound("订单未找到");
-        }
-
-        if(order.getUserId() != userId) {
-            throw HttpException.forbidden("没有权限");
+//        if(order == null) {
+//            throw HttpException.notFound("订单未找到");
+//        }
+//
+//        if(order.getUserId() != userId) {
+//            throw HttpException.forbidden("没有权限");
+//        }
+        if (order == null) {
+            return null;
         }
 
         List<GoodsInfo> goodsInfos = myOrderMapper.getGoodsInfos(orderId);
@@ -89,7 +92,12 @@ public class OrderServiceImpl implements OrderRpcService {
         orderExample.createCriteria().andIdEqualTo(orderId);
         order.setId(orderId);
         orderMapper.updateByExampleSelective(order, orderExample);
-        return null;
+
+        List<GoodsInfo> goodsInfos = myOrderMapper.getGoodsInfos(orderId);
+        RpcOrderGoods rpcOrderGoods = new RpcOrderGoods();
+        rpcOrderGoods.setGoods(goodsInfos);
+        rpcOrderGoods.setOrder(order);
+        return rpcOrderGoods;
     }
 
     @Override
@@ -117,8 +125,7 @@ public class OrderServiceImpl implements OrderRpcService {
     public List<OrderGoods> getGoodsIdsByOrderId(Long orderId) {
         OrderGoodsExample orderGoodsExample = new OrderGoodsExample();
         orderGoodsExample.createCriteria().andOrderIdEqualTo(orderId);
-        List<OrderGoods> orderGoodsList = orderGoodsMapper.selectByExample(orderGoodsExample);
-        return orderGoodsList;
+        return orderGoodsMapper.selectByExample(orderGoodsExample);
     }
 
     private void insertOrder(Order order) {

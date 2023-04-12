@@ -27,13 +27,8 @@ public class OrderController {
     }
 
     @PostMapping("order")
-    public Response<OrderResponse> placeOrder(@RequestBody OrderInfo orderInfo, HttpServletResponse response) {
-        try {
-            return Response.of(orderService.createOrder(orderInfo, UserContext.getCurrentUser().getId()));
-        } catch (HttpException e) {
-            response.setStatus(e.getStatusCode());
-            return Response.of(e.getMessage(), null);
-        }
+    public Response<OrderResponse> placeOrder(@RequestBody OrderInfo orderInfo) {
+        return Response.of(orderService.createOrder(orderInfo, UserContext.getCurrentUser().getId()));
     }
 
     @GetMapping("order/{orderId}")

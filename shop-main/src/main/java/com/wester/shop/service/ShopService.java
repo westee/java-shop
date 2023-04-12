@@ -42,7 +42,11 @@ public class ShopService {
     }
 
     public Shop updateShop(Shop shop, Long userId) {
-        Long ownerUserId = shopMapper.selectByPrimaryKey(shop.getId()).getOwnerUserId();
+        Shop shopResult = shopMapper.selectByPrimaryKey(shop.getId());
+        if (Objects.equals(shopResult, null)) {
+            throw HttpException.forbidden("参数不合法");
+        }
+        Long ownerUserId = shopResult.getOwnerUserId();
         if (Objects.equals(ownerUserId, userId)) {
             shop.setUpdatedAt(new Date());
             shop.setCreatedAt(new Date());
@@ -55,6 +59,9 @@ public class ShopService {
 
     public Shop deleteShop(Long shopId, Long userId) {
         Shop shop = shopMapper.selectByPrimaryKey(shopId);
+        if (Objects.equals(shop, null)) {
+            throw HttpException.forbidden("参数不合法");
+        }
         Long ownerUserId = shop.getOwnerUserId();
         if (Objects.equals(ownerUserId, userId)) {
             shop.setStatus(GoodsStatus.DELETED.getName());

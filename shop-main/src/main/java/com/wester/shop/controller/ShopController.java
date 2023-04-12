@@ -1,6 +1,5 @@
 package com.wester.shop.controller;
 
-import com.wester.api.exceptions.HttpException;
 import com.wester.shop.data.PageResponse;
 import com.wester.shop.entity.Response;
 import com.wester.shop.generate.Shop;
@@ -43,24 +42,14 @@ public class ShopController {
 
     @PatchMapping("/shop/{id}")
     public Response<Shop> updateShop(@PathVariable("id") Long id,
-                                     @RequestBody Shop shop,
-                                     HttpServletResponse response) {
+                                     @RequestBody Shop shop) {
         shop.setId(id);
-        try {
-            return Response.of(shopService.updateShop(shop, UserContext.getCurrentUser().getId()));
-        } catch (HttpException e) {
-            response.setStatus(e.getStatusCode());
-            return Response.of(e.getMessage(), null);
-        }
+        return Response.of(shopService.updateShop(shop, UserContext.getCurrentUser().getId()));
     }
 
     @DeleteMapping("/shop/{id}")
-    public Response<Shop> deleteShop(@PathVariable("id") Long shopId, HttpServletResponse response) {
-        try {
-            return Response.of(shopService.deleteShop(shopId, UserContext.getCurrentUser().getId()));
-        } catch (HttpException e) {
-            response.setStatus(e.getStatusCode());
-            return Response.of(e.getMessage(), null);
-        }
+    public Response<Shop> deleteShop(@PathVariable("id") Long shopId) {
+        return Response.of(shopService.deleteShop(shopId, UserContext.getCurrentUser().getId()));
+
     }
 }
