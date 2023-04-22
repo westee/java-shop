@@ -7,9 +7,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -23,9 +26,21 @@ public class AbstractIntegrationTest {
     @Autowired
     Environment env;
 
+    @Value("${spring.datasource.url}")
+    private String databaseUrl;
+    @Value("${spring.datasource.username}")
+    private String databaseUsername;
+    @Value("${spring.datasource.password}")
+    private String databasePassword;
+
     @BeforeEach
     public void setUp() {
-
+        // 在每个测试开始前，执行一次flyway:clean flyway:migrate
+        ClassicConfiguration conf = new ClassicConfiguration();
+        conf.setDataSource(databaseUrl, databaseUsername, databasePassword);
+        Flyway flyway = new Flyway(conf);
+        flyway.clean();
+        flyway.migrate();
     }
 
     public static ObjectMapper objectMapper = new ObjectMapper();

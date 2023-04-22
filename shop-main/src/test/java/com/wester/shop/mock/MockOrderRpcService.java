@@ -34,7 +34,7 @@ public class MockOrderRpcService implements OrderRpcService {
 
     @Override
     public RpcOrderGoods updateOrderById(long orderId, Order order) {
-        return null;
+        return orderRpcService.updateOrderById(orderId, order);
     }
 
     @Override

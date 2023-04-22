@@ -24,7 +24,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(classes = ShopApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {"spring.config.location=classpath:test-application.yml"})
 public class OrderIntegrationTest extends AbstractIntegrationTest {
-    private static long userId = 2L;
+    private static final long userId = 2L;
     @Autowired
     MockOrderRpcService mockOrderRpcService;
 
@@ -72,7 +74,8 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         });
 
         HttpResponse post = doHttpRequest("/api/v1/order", orderInfo, cookie, "POST");
-        Response<OrderResponse> response = objectMapper.readValue(post.body, new TypeReference<Response<OrderResponse>>() {});
+        Response<OrderResponse> response = objectMapper.readValue(post.body, new TypeReference<Response<OrderResponse>>() {
+        });
         assertEquals(1234L, response.getData().getId());
         System.out.println(response);
 
@@ -86,7 +89,8 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         when(mockOrderRpcService.orderRpcService.getOrderById(1234L, userId)).thenReturn(rpcOrderGoods);
 
         HttpResponse get = doHttpRequest("/api/v1/order/1234", null, cookie, "GET");
-        Response<RpcOrderGoods> getResponse = objectMapper.readValue(get.body, new TypeReference<Response<RpcOrderGoods>>() {});
+        Response<RpcOrderGoods> getResponse = objectMapper.readValue(get.body, new TypeReference<Response<RpcOrderGoods>>() {
+        });
 
         assertEquals(getResponse.getData().getOrder().getId(), order.getId());
 
@@ -101,7 +105,8 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
                 .thenReturn(mockRpcOderGoods(100, 1, 3, 2, 5, DataStatus.DELETED));
 
         HttpResponse delete = doHttpRequest("/api/v1/order/100", null, cookie, "DELETE");
-        RpcOrderGoods deleteResponse = objectMapper.readValue(delete.body, new TypeReference<RpcOrderGoods>() {});
+        RpcOrderGoods deleteResponse = objectMapper.readValue(delete.body, new TypeReference<RpcOrderGoods>() {
+        });
 
         assertEquals(delete.code, 200);
         assertEquals(DataStatus.DELETED.getName(), deleteResponse.getOrder().getStatus());
@@ -109,6 +114,67 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         assertEquals(1, deleteResponse.getGoods().size());
         assertEquals(3L, deleteResponse.getGoods().get(0).getId());
         assertEquals(5, deleteResponse.getGoods().get(0).getNumber());
+    }
+
+    @Test
+    public void return404IfOrderNotFound() throws Exception {
+        UserLoginResponse loginResponse = loginAndGetCookie();
+
+        Order order = new Order();
+        order.setId(12345L);
+        assertEquals(HttpURLConnection.HTTP_NOT_FOUND,
+                doHttpRequest("/api/v1/order/12345", order, loginResponse.getCookie(), "PATCH").code);
+    }
+
+    @Test
+    public void canUpdateOrderExpressInformation() throws Exception {
+        UserLoginResponse loginResponse = loginAndGetCookie();
+
+        Order order = new Order();
+        order.setId(1234L);
+        order.setAddress("新地址");
+        order.setExpressCompany("新快递公司");
+        order.setExpressId("123456789");
+
+        RpcOrderGoods rpcOrderGoods = new RpcOrderGoods();
+        Order orderInDataBase = new Order();
+        orderInDataBase.setId(1234L);
+        orderInDataBase.setShopId(2L);
+        orderInDataBase.setUserId(2L);
+        rpcOrderGoods.setOrder(orderInDataBase);
+
+        when(mockOrderRpcService.orderRpcService.getOrderById(1234L, userId)).thenReturn(rpcOrderGoods);
+        when(mockOrderRpcService.orderRpcService.updateOrderById(1234L, order)).thenReturn(
+                mockRpcOderGoods(100, 2, 3, 2, 5, DataStatus.DELETED)
+        );
+
+        HttpResponse patch = doHttpRequest("/api/v1/order/1234", order, loginResponse.getCookie(), "PATCH");
+        assertEquals(HttpURLConnection.HTTP_OK,
+                patch.code);
+    }
+
+    @Test
+    public void canUpdateOrderStatus() throws Exception {
+        UserLoginResponse loginResponse = loginAndGetCookie();
+
+        Order order = new Order();
+        order.setId(12345L);
+        order.setStatus(DataStatus.RECEIVED.getName());
+
+        RpcOrderGoods rpcOrderGoods = new RpcOrderGoods();
+        Order orderInDataBase = new Order();
+        orderInDataBase.setUserId(userId);
+        orderInDataBase.setShopId(2L);
+        rpcOrderGoods.setOrder(orderInDataBase);
+
+        when(mockOrderRpcService.orderRpcService.getOrderById(12345L, userId)).thenReturn(rpcOrderGoods);
+        when(mockOrderRpcService.orderRpcService.updateOrderById(12345L, order)).thenReturn(
+                mockRpcOderGoods(100, 2, 3, 2, 5, DataStatus.DELETED)
+        );
+
+        HttpResponse patch = doHttpRequest("/api/v1/order/12345", order, loginResponse.getCookie(), "PATCH");
+        assertEquals(HttpURLConnection.HTTP_OK,
+                patch.code);
     }
 
     @Test
@@ -126,7 +192,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
 
         orderInfo.setGoods(Arrays.asList(goodsInfo1, goodsInfo2));
 
-        HttpResponse response = doHttpRequest("/api/v1/order",  orderInfo, loginResponse.getCookie(),"POST");
+        HttpResponse response = doHttpRequest("/api/v1/order", orderInfo, loginResponse.getCookie(), "POST");
         assertEquals(HttpStatus.GONE.value(), response.code);
 
         // 确保扣库存成功的回滚了
@@ -151,7 +217,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         order.setShopId(shopId);
         order.setStatus(status.getName());
 
-        orderGoods.setGoods(Arrays.asList(goodsInfo));
+        orderGoods.setGoods(Collections.singletonList(goodsInfo));
         orderGoods.setOrder(order);
         return orderGoods;
     }
